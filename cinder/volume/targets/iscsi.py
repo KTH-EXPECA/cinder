@@ -184,10 +184,13 @@ class ISCSITarget(driver.Target):
 
         # Verify we haven't setup a CHAP creds file already
         # if DNE no big deal, we'll just create it
-        chap_auth = self._get_target_chap_auth(context, volume)
-        if not chap_auth:
-            chap_auth = (volume_utils.generate_username(),
-                         volume_utils.generate_password())
+        # chap_auth = self._get_target_chap_auth(context, volume)
+        # if not chap_auth:
+        #     chap_auth = (volume_utils.generate_username(),
+        #                  volume_utils.generate_password())
+
+        # expeca overrule
+        chap_auth = ('expeca','expeca')
 
         # Get portals ips and port
         portals_config = self._get_portals_config()
