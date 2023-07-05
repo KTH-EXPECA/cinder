@@ -208,8 +208,11 @@ class ISCSITarget(driver.Target):
             self.configuration.target_ip_address, tid, iscsi_name, lun,
             self.configuration.iscsi_secondary_ip_addresses)
         LOG.debug('Set provider_location to: %s', data['location'])
-        data['auth'] = self._iscsi_authentication(
-            'CHAP', *chap_auth)
+        if chap_auth is not None:
+            data['auth'] = self._iscsi_authentication(
+                'CHAP', *chap_auth)
+        else:
+            data['auth'] = ""
         return data
 
     def remove_export(self, context, volume):
