@@ -466,6 +466,10 @@ class CreateVolumeFromSpecTask(flow_utils.CinderTask):
         try:
             model_update = self.driver.create_volume_from_snapshot(volume,
                                                                    snapshot)
+            # expeca add:
+            volume = self.driver._export_volume(context,
+                                                 volume,
+                                                 {'multipath':False})
         finally:
             self._cleanup_cg_in_volume(volume)
         # NOTE(harlowja): Subtasks would be useful here since after this
@@ -648,6 +652,11 @@ class CreateVolumeFromSpecTask(flow_utils.CinderTask):
                 volume.update(model_update)
                 rekey_model_update = self._rekey_volume(context, volume)
                 model_update.update(rekey_model_update)
+
+            # expeca add:
+            volume = self.driver._export_volume(context,
+                                                 volume,
+                                                 {'multipath':False})
         finally:
             self._cleanup_cg_in_volume(volume)
         # NOTE(harlowja): Subtasks would be useful here since after this
@@ -754,6 +763,11 @@ class CreateVolumeFromSpecTask(flow_utils.CinderTask):
 
         try:
             ret = self.driver.create_cloned_volume(volume, image_volume)
+            # expeca add:
+            volume = self.driver._export_volume(context,
+                                                 volume,
+                                                 {'multipath':False})
+
             self._cleanup_cg_in_volume(volume)
             return ret, True
         except (NotImplementedError, exception.CinderException):
@@ -993,6 +1007,11 @@ class CreateVolumeFromSpecTask(flow_utils.CinderTask):
                             image_meta,
                             image_service
                         )
+
+                        # expeca add: (self.driver.create_volume is inside _create_from_image_download)
+                        volume = self.driver._export_volume(context,
+                                                            volume,
+                                                            {'multipath':False})
                 except exception.ImageTooBig as e:
                     with excutils.save_and_reraise_exception():
                         self.message.create(
@@ -1110,6 +1129,7 @@ class CreateVolumeFromSpecTask(flow_utils.CinderTask):
         self._handle_bootable_volume_glance_meta(context, volume,
                                                  image_id=image_id,
                                                  image_meta=image_meta)
+        
         typing.cast(dict, model_update)
         return model_update
 
@@ -1126,6 +1146,10 @@ class CreateVolumeFromSpecTask(flow_utils.CinderTask):
         try:
             ret = self.driver.create_volume_from_backup(volume, backup)
             need_update_volume = True
+            # expeca add:
+            volume = self.driver._export_volume(context,
+                                                 volume,
+                                                 {'multipath':False})
 
         except NotImplementedError:
             LOG.info("Backend does not support creating volume from "
@@ -1162,6 +1186,10 @@ class CreateVolumeFromSpecTask(flow_utils.CinderTask):
                            **kwargs: Any):
         try:
             ret = self.driver.create_volume(volume)
+            # expeca add:
+            volume = self.driver._export_volume(context,
+                                                 volume,
+                                                 {'multipath':False})
         except Exception as ex:
             with excutils.save_and_reraise_exception():
                 self.message.create(

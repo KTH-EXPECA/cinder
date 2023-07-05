@@ -100,7 +100,7 @@ class LVMVolumeDriver(driver.VolumeDriver):
         target_driver = \
             self.target_mapping[self.configuration.safe_get('target_helper')]
 
-        LOG.debug('Attempting to initialize LVM driver with the '
+        LOG.info('Attempting to initialize LVM driver with the '
                   'following target_driver: %s',
                   target_driver)
 
@@ -205,6 +205,8 @@ class LVMVolumeDriver(driver.VolumeDriver):
         if vg is not None:
             vg_ref = vg
 
+        LOG.info('LVM create volume')
+
         vg_ref.create_volume(name, size, lvm_type, mirror_count)
 
     def _update_volume_stats(self):
@@ -294,6 +296,7 @@ class LVMVolumeDriver(driver.VolumeDriver):
 
     def check_for_setup_error(self):
         """Verify that requirements are in place to use LVM driver."""
+        LOG.info('Start LVM setup check')
         if self.vg is None:
             root_helper = utils.get_root_helper()
 
@@ -351,6 +354,9 @@ class LVMVolumeDriver(driver.VolumeDriver):
                     self.configuration.lvm_type = 'thin'
 
         if self.configuration.lvm_type == 'thin':
+            LOG.info('Enabling LVM thin provisioning '
+                     'because of configuration. ')
+
             # Specific checks for using Thin provisioned LV's
             if not volume_utils.supports_thin_provisioning():
                 message = _("Thin provisioning not supported "
@@ -823,6 +829,8 @@ class LVMVolumeDriver(driver.VolumeDriver):
         return model_update
 
     def create_export(self, context, volume, connector, vg=None):
+        LOG.info('LVM create_export')
+
         if vg is None:
             vg = self.configuration.volume_group
 
@@ -841,6 +849,7 @@ class LVMVolumeDriver(driver.VolumeDriver):
         self.target_driver.remove_export(context, volume)
 
     def initialize_connection(self, volume, connector):
+        LOG.info('LVM initialize_connection')
         return self.target_driver.initialize_connection(volume, connector)
 
     def validate_connector(self, connector):

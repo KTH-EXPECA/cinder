@@ -1007,7 +1007,51 @@ class BaseVD(object, metaclass=abc.ABCMeta):
         """
         return None
 
+    def _export_volume(self, context, volume, properties):
+
+        # Call local driver's create_export and initialize_connection.
+        model_update = None
+        try:
+            LOG.info("Volume %s: creating export", volume['id'])
+            model_update = self.create_export(context, volume, properties)
+            if model_update:
+                volume.update(model_update)
+                volume.save()
+        except exception.CinderException as ex:
+            if model_update:
+                LOG.exception("Failed updating model of volume "
+                              "%(volume_id)s with driver provided "
+                              "model %(model)s",
+                              {'volume_id': volume['id'],
+                               'model': model_update})
+                raise exception.ExportFailure(reason=ex)
+
+        try:
+            conn = self.initialize_connection(volume, properties)
+        except Exception as err:
+            try:
+                err_msg = (_('Unable to fetch connection information from '
+                             'backend: %(err)s') % {'err': err})
+                LOG.error(err_msg)
+                LOG.debug("Cleaning up failed connect initialization.")
+                self.remove_export(context, volume)
+            except Exception as ex:
+                ex_msg = (_('Error encountered during cleanup '
+                            'of a failed attach: %(ex)s') % {'ex': ex})
+                LOG.error(err_msg)
+                raise exception.VolumeBackendAPIException(data=ex_msg)
+            raise exception.VolumeBackendAPIException(data=err_msg)
+
+        # Add encrypted flag to connection_info if not set in the driver.
+        if conn['data'].get('encrypted') is None:
+            encrypted = bool(volume.encryption_key_id)
+            conn['data']['encrypted'] = encrypted
+
+        return volume
+
     def _attach_volume(self, context, volume, properties, remote=False):
+        LOG.info('volume/driver: _attach_volume %s',remote)
+
         """Attach the volume."""
         if remote:
             # Call remote manager's initialize_connection which includes
@@ -1036,7 +1080,7 @@ class BaseVD(object, metaclass=abc.ABCMeta):
             # clean this up in the future.
             model_update = None
             try:
-                LOG.debug("Volume %s: creating export", volume['id'])
+                LOG.info("Volume %s: creating export", volume['id'])
                 model_update = self.create_export(context, volume, properties)
                 if model_update:
                     volume.update(model_update)

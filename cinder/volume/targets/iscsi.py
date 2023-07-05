@@ -39,6 +39,7 @@ class ISCSITarget(driver.Target):
         self.iscsi_protocol = self.configuration.safe_get('target_protocol')
         self.protocol = 'iSCSI'
         self.volumes_dir = self.configuration.safe_get('volumes_dir')
+        LOG.info("ISCSI init %s, %s, %s, %s", self.iscsi_target_prefix, self.iscsi_protocol, self.protocol, self.volumes_dir)
 
     def _get_iscsi_properties(self, volume, multipath=False):
         """Gets iscsi configuration
@@ -93,7 +94,7 @@ class ISCSITarget(driver.Target):
                         (volume['name']))
                 raise exception.InvalidVolume(reason=msg)
 
-            LOG.debug("ISCSI Discovery: Found %s", location)
+            LOG.info("ISCSI Discovery: Found %s", location)
             properties['target_discovered'] = True
 
         results = location.split(" ")
@@ -174,6 +175,8 @@ class ISCSITarget(driver.Target):
 
     def create_export(self, context, volume, volume_path):
         """Creates an export for a logical volume."""
+        LOG.info('ISCSO create export')
+
         # 'iscsi_name': 'iqn.2010-10.org.openstack:volume-00000001'
         iscsi_name = "%s%s" % (self.configuration.target_prefix,
                                volume['name'])
@@ -271,6 +274,8 @@ class ISCSITarget(driver.Target):
         iscsi_properties = self._get_iscsi_properties(volume,
                                                       connector.get(
                                                           'multipath'))
+
+        LOG.info('ISCSI initialize_connection %s',iscsi_properties)
         return {
             'driver_volume_type': self.iscsi_protocol,
             'data': iscsi_properties

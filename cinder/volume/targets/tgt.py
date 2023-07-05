@@ -117,6 +117,7 @@ class TgtAdm(iscsi.ISCSITarget):
     def create_iscsi_target(self, name, tid, lun, path,
                             chap_auth=None, **kwargs):
 
+        LOG.info('TGT create iscsi target')
         # Note(jdg) tid and lun aren't used by TgtAdm but remain for
         # compatibility
 
@@ -144,7 +145,7 @@ class TgtAdm(iscsi.ISCSITarget):
             'chap_auth': chap_str, 'target_flags': target_flags,
             'write_cache': write_cache}
 
-        LOG.debug('Creating iscsi_target for Volume ID: %s', vol_id)
+        LOG.info('Creating iscsi_target for Volume ID: %s', vol_id)
         volumes_dir = self.volumes_dir
         volume_path = os.path.join(volumes_dir, vol_id)
 
@@ -152,7 +153,7 @@ class TgtAdm(iscsi.ISCSITarget):
             LOG.debug(('Persistence file already exists for volume, '
                        'found file at: %s'), volume_path)
         utils.robust_file_write(volumes_dir, vol_id, volume_conf)
-        LOG.debug(('Created volume path %(vp)s,\n'
+        LOG.info(('Created volume path %(vp)s,\n'
                    'content: %(vc)s'),
                   {'vp': volume_path, 'vc': volume_conf})
 
@@ -192,7 +193,7 @@ class TgtAdm(iscsi.ISCSITarget):
         # Consider adding a check for lun 0 and 1 for tgtadm
         # before considering this as valid
         cinder.privsep.targets.tgt.tgtadm_show()
-        LOG.debug("Targets after update: %s", out)
+        LOG.info("Targets after update: %s", out)
 
         iqn = '%s%s' % (self.iscsi_target_prefix, vol_id)
         tid = self._get_target(iqn)
