@@ -190,7 +190,7 @@ class ISCSITarget(driver.Target):
         #                  volume_utils.generate_password())
 
         # expeca overrule
-        chap_auth = ('expeca','expeca')
+        chap_auth = None
 
         # Get portals ips and port
         portals_config = self._get_portals_config()
